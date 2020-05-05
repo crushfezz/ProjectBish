@@ -669,8 +669,16 @@ async def lists(gdrive):
         page_size = 50  # default page_size is 50
     checker = gdrive.pattern_match.group(2)
     if checker != '':
+        if checker.startswith('-p') and gdrive.pattern_match.group(
+          1) is None and re.search(r'-l (\d+)', checker):
+            await gdrive.edit(gdrive.text)
+            return
         if checker.startswith('-p'):
-            parents = checker.split(None, 2)[1]
+            try:
+                parents = checker.split(None, 2)[1]
+            except IndexError:
+                await gdrive.edit(gdrive.message)
+                return
             try:
                 name = checker.split(None, 2)[2]
             except IndexError:
@@ -682,6 +690,9 @@ async def lists(gdrive):
                 parents = re.search('-p (.*)', checker).group(1)
                 name = checker.split('-p')[0].strip()
                 query = f"'{parents}' in parents and (name contains '{name}')"
+            elif re.search('-p', checker):
+                await gdrive.edit(gdrive.message)
+                return
             else:
                 name = checker
                 query = f"name contains '{name}'"
